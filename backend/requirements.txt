@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+python-multipart
+pydantic-settings
+python-dotenv
+PyMuPDF
+python-docx
+sentence-transformers
+chromadb

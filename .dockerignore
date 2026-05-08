@@ -1,0 +1,30 @@
+.git
+.gitignore
+.gitattributes
+
+# OS / IDE
+.DS_Store
+.vscode/
+.idea/
+
+# Python build artifacts
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+
+# Local-only secrets and venv (NEVER ship)
+backend/.env
+backend/.venv
+
+# Local runtime data - recreated per request, must not be baked into the image
+backend/data
+backend/uploads
+backend/logs
+*.log
+
+# Frontend dev artifacts
+frontend/runtime-config.js
+frontend/node_modules

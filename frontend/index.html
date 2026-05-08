@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ResumeMatch AI</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%232563eb'/%3E%3Ctext x='32' y='39' font-size='22' text-anchor='middle' fill='white' font-family='Arial'%3ERM%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <nav class="topbar" aria-label="Main navigation">
+          <a class="brand" href="#top" aria-label="ResumeMatch AI home">
+            <span class="brand-mark" aria-hidden="true">RM</span>
+            <span>ResumeMatch AI</span>
+          </a>
+          <span class="system-pill">Local RAG-powered resume analysis</span>
+        </nav>
+
+        <section class="hero-grid" id="top">
+          <div class="hero-copy">
+            <p class="eyebrow">Resume + job description matcher</p>
+            <h1>Match your resume to the role.</h1>
+            <p class="hero-text">
+              Upload a resume, paste a job description, and review skills,
+              gaps, suggestions, and semantic evidence.
+            </p>
+          </div>
+
+          <aside class="hero-card workflow-strip" aria-label="Current workflow">
+            <div class="workflow-row">
+              <span class="workflow-number">01</span>
+              <span>Upload resume</span>
+            </div>
+            <div class="workflow-row">
+              <span class="workflow-number">02</span>
+              <span>Paste role</span>
+            </div>
+            <div class="workflow-row">
+              <span class="workflow-number">03</span>
+              <span>Review gaps</span>
+            </div>
+          </aside>
+        </section>
+      </header>
+
+      <main>
+        <section class="analyzer-panel" aria-labelledby="analyzer-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Analyzer</p>
+              <h2 id="analyzer-title">Prepare your match request</h2>
+            </div>
+
+          </div>
+
+          <form class="analyzer-form" id="analyzerForm" novalidate>
+            <div class="input-grid">
+              <article class="input-card fade-in">
+                <div class="card-heading">
+                  <span class="card-step">A</span>
+                  <div>
+                    <h3>Upload Resume</h3>
+                    <p>Accepted formats: PDF or DOCX.</p>
+                  </div>
+                </div>
+
+                <label class="upload-zone" for="resumeFile" id="uploadZone">
+                  <input
+                    type="file"
+                    id="resumeFile"
+                    name="resume_file"
+                    accept=".pdf,.docx"
+                  />
+                  <span class="upload-icon" aria-hidden="true"></span>
+                  <span class="upload-title">Choose or drop a resume file</span>
+                  <span class="upload-subtitle">
+                    The file is sent directly to the local backend for analysis.
+                  </span>
+                </label>
+
+                <p class="file-status" id="fileStatus">
+                  No resume selected yet.
+                </p>
+                <p class="input-note">
+                  PDF or DOCX only. Your upload is not permanently stored.
+                </p>
+                <p class="field-error" id="fileError" aria-live="assertive"></p>
+              </article>
+
+              <article class="input-card fade-in delay-1">
+                <div class="card-heading">
+                  <span class="card-step">B</span>
+                  <div>
+                    <h3>Paste Job Description</h3>
+                    <p>Add the role requirements and responsibilities.</p>
+                  </div>
+                </div>
+
+                <label class="visually-hidden" for="jobDescription">
+                  Job description
+                </label>
+                <textarea
+                  id="jobDescription"
+                  name="job_description"
+                  rows="10"
+                  placeholder="Paste the job description here..."
+                ></textarea>
+                <div class="textarea-meta">
+                  <span id="jobCounter">0 characters</span>
+                  <span>Plain text only</span>
+                </div>
+                <p class="field-error" id="jobError" aria-live="assertive"></p>
+              </article>
+            </div>
+
+            <div class="form-actions">
+              <div class="button-row">
+                <button class="analyze-button" type="submit">
+                  Analyze match
+                </button>
+                <button class="secondary-button" id="resetButton" type="button">
+                  Clear form
+                </button>
+              </div>
+              <p class="form-message" id="formMessage" aria-live="polite">
+                Complete both inputs to prepare an analysis.
+              </p>
+            </div>
+          </form>
+        </section>
+
+        <section class="results-panel" aria-labelledby="results-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Results</p>
+              <h2 id="results-title">Analysis output</h2>
+            </div>
+            <span class="status-chip muted" id="resultsStatus">
+              Waiting for analysis
+            </span>
+          </div>
+
+          <div
+            class="result-alert"
+            id="resultsAlert"
+            role="alert"
+            aria-live="assertive"
+            hidden
+          ></div>
+
+          <div
+            class="loading-card"
+            id="loadingCard"
+            role="status"
+            aria-live="polite"
+            hidden
+          >
+            <span class="spinner" aria-hidden="true"></span>
+            <span>
+              Analyzing resume, extracting skills, and searching semantic
+              evidence...
+              <small>
+                First run may take longer while the local embedding model loads.
+              </small>
+            </span>
+          </div>
+
+          <div class="results-layout" id="resultsGrid">
+            <div class="score-summary-grid">
+              <article class="result-card score-card">
+                <p class="result-label">Match score</p>
+                <div class="score-content">
+                  <div
+                    class="score-ring"
+                    id="scoreRing"
+                    aria-label="No score yet"
+                  >
+                    <span id="scoreValue">--</span>
+                  </div>
+                  <div class="score-copy">
+                    <p class="score-label" id="scoreLabel">
+                      Awaiting analysis
+                    </p>
+                    <div class="score-bar" aria-hidden="true">
+                      <span id="scoreBar"></span>
+                    </div>
+                    <p class="score-note" id="scoreNote">
+                      Estimated from detected skills and semantic resume
+                      evidence.
+                    </p>
+                  </div>
+                </div>
+              </article>
+
+              <article class="result-card summary-card">
+                <p class="result-label">Summary</p>
+                <p class="result-summary" id="summaryText">
+                  Results will appear here after the backend analyzes your
+                  resume and job description.
+                </p>
+              </article>
+            </div>
+
+            <article
+              class="result-card result-tabs-card"
+              aria-labelledby="result-tabs-title"
+            >
+              <div class="result-tabs-title-row">
+                <div>
+                  <p class="result-label">Skills and recommendations</p>
+                  <h3 id="result-tabs-title">Skills, gaps, and action steps</h3>
+                </div>
+                <p class="result-tabs-summary" id="resultTabsSummary">
+                  0 matched / 0 missing / 0 action steps
+                </p>
+              </div>
+
+              <div
+                class="result-tabs-header"
+                role="tablist"
+                aria-label="Result categories"
+              >
+                <button
+                  class="result-tab active"
+                  id="matchedSkillsTab"
+                  type="button"
+                  role="tab"
+                  aria-selected="true"
+                  aria-controls="matchedSkillsPanel"
+                  data-result-tab="matched"
+                >
+                  Matched Skills
+                  <span class="result-tab-count" data-result-count="matched">
+                    0
+                  </span>
+                </button>
+                <button
+                  class="result-tab"
+                  id="missingSkillsTab"
+                  type="button"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="missingSkillsPanel"
+                  data-result-tab="missing"
+                >
+                  Missing Skills
+                  <span class="result-tab-count" data-result-count="missing">
+                    0
+                  </span>
+                </button>
+                <button
+                  class="result-tab"
+                  id="actionStepsTab"
+                  type="button"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="actionStepsPanel"
+                  data-result-tab="actions"
+                >
+                  Action Steps
+                  <span class="result-tab-count" data-result-count="actions">
+                    0
+                  </span>
+                </button>
+              </div>
+
+              <div class="result-tab-panels">
+                <div
+                  class="result-tab-panel"
+                  id="matchedSkillsPanel"
+                  role="tabpanel"
+                  aria-labelledby="matchedSkillsTab"
+                  data-tab-panel="matched"
+                >
+                  <div class="card-list compact-list" id="matchedSkillsList">
+                    <p class="empty-state">No matched skills found yet.</p>
+                  </div>
+                </div>
+
+                <div
+                  class="result-tab-panel hidden"
+                  id="missingSkillsPanel"
+                  role="tabpanel"
+                  aria-labelledby="missingSkillsTab"
+                  data-tab-panel="missing"
+                >
+                  <div class="card-list compact-list" id="missingSkillsList">
+                    <p class="empty-state">
+                      No major missing skills detected from the keyword list.
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  class="result-tab-panel hidden"
+                  id="actionStepsPanel"
+                  role="tabpanel"
+                  aria-labelledby="actionStepsTab"
+                  data-tab-panel="actions"
+                >
+                  <ul class="suggestion-list" id="suggestionsList">
+                    <li class="empty-state">No suggestions returned yet.</li>
+                  </ul>
+                </div>
+              </div>
+            </article>
+
+            <article class="result-card evidence-section">
+              <p class="result-label">Top resume evidence</p>
+              <div class="evidence-list" id="evidenceList">
+                <p class="empty-state">
+                  Selected semantic resume evidence will appear here.
+                </p>
+              </div>
+            </article>
+
+          </div>
+        </section>
+      </main>
+
+      <footer class="privacy-note">
+        <p>
+          Your resume is analyzed locally by the backend during the request and
+          is not permanently stored.
+        </p>
+      </footer>
+    </div>
+
+    <div id="chatWidget" class="chat-widget">
+      <button
+        id="chatLauncher"
+        class="chat-launcher"
+        type="button"
+        aria-controls="chatPopup"
+        aria-expanded="false"
+      >
+        Ask AI
+      </button>
+
+      <section
+        id="chatPopup"
+        class="chat-popup hidden"
+        role="dialog"
+        aria-label="Resume Assistant chat"
+      >
+        <header class="chat-popup-header">
+          <div class="chat-heading">
+            <p class="eyebrow">Resume Assistant</p>
+            <h2 class="chat-title">Ask about this analysis</h2>
+
+          </div>
+          <button
+            id="chatCloseBtn"
+            class="chat-close"
+            type="button"
+            aria-label="Close chat"
+          >
+            &times;
+          </button>
+        </header>
+
+        <div
+          class="chat-messages"
+          id="chatMessages"
+          aria-label="Chat messages"
+          aria-live="polite"
+          tabindex="0"
+        ></div>
+
+        <div class="quick-questions" aria-label="Quick questions">
+          <button class="suggested-question" type="button" data-chat-question="What should I improve first?" disabled>
+            What should I improve first?
+          </button>
+          <button class="suggested-question" type="button" data-chat-question="Why is my score low?" disabled>
+            Why is my score low?
+          </button>
+          <button class="suggested-question" type="button" data-chat-question="Which skills matter most?" disabled>
+            Which skills matter most?
+          </button>
+          <button class="suggested-question" type="button" data-chat-question="How can I tailor my resume?" disabled>
+            How can I tailor my resume?
+          </button>
+        </div>
+
+        <form class="chat-form" id="chatForm" novalidate>
+          <label class="visually-hidden" for="chatInput">Ask a follow-up question</label>
+          <input
+            id="chatInput"
+            name="chat_message"
+            type="text"
+            aria-label="Ask a follow-up question"
+            placeholder="Ask what to improve..."
+            autocomplete="off"
+            maxlength="500"
+            disabled
+          />
+          <button class="chat-send-button" id="chatSendButton" type="submit" disabled>
+            Send
+          </button>
+        </form>
+        <p class="chat-feedback" id="chatFeedback" aria-live="polite"></p>
+      </section>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

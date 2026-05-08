@@ -1,0 +1,23 @@
+# pip constraints for Docker / CPU-only Render deployment.
+# Used together with --extra-index-url https://download.pytorch.org/whl/cpu
+# so torch is pulled from the CPU index instead of the default CUDA wheel.
+# Local dev (Windows / GPU) does NOT use this file - it is referenced only
+# by the Dockerfile, so requirements.txt stays unchanged.
+
+torch
+
+# Pin numpy/scipy/sklearn to a known-compatible window for Python 3.11 CPU.
+#
+# Without these pins, an unconstrained `pip install` would land on
+# numpy>=2.1 + scipy<1.14, which triggers
+#   KeyError: 'Extended Summary'
+# when scipy's docstring augmentation runs against numpy 2.1's reworked
+# internal API. sentence-transformers -> sklearn -> scipy then dies on
+# import inside the Docker build, before the model can pre-download.
+#
+# Keeping numpy<2.0 with scipy 1.11-1.13 and sklearn 1.3-1.4 avoids that
+# code path entirely. ChromaDB and sentence-transformers both run fine
+# under numpy 1.26.x.
+numpy<2.0
+scipy>=1.11,<1.14
+scikit-learn>=1.3,<1.5

@@ -1,0 +1,22 @@
+# Python artifacts
+__pycache__/
+.pytest_cache/
+*.py[cod]
+*.pyo
+
+# Environment files
+.env
+backend/.env
+!backend/.env.example
+
+# Local environments
+backend/.venv/
+
+# Data, logs, and build artifacts
+backend/data/
+*.log
+frontend/node_modules/
+frontend/runtime-config.js
+
+# VS Code
+.vscode/
